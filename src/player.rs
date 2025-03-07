@@ -18,10 +18,12 @@ pub struct Player {
 
 impl Entity for Player {
     fn update(self: &mut Self) {
-        self.speed.y = self.speed.y
-            * (0.95
-                + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 10f32
-                    / f32::sqrt(self.speed.y * self.speed.y + self.speed.x * self.speed.x));
+        let mut absSpeed = f32::sqrt(self.speed.y * self.speed.y + self.speed.x * self.speed.x);
+        if absSpeed < 0.1 {absSpeed = 0.1;}
+        let speed_factor =
+            0.95 + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 10f32 / absSpeed;
+        self.speed.y *= speed_factor;
+        self.speed.x *= speed_factor;
 
         // position
         self.position.x += self.speed.x;
@@ -30,10 +32,8 @@ impl Entity for Player {
 
     fn draw(self: &mut Self, camera: &Camera2D) {
         draw_circle(
-            self.position.x - camera.target.x
-                + camera.offset.x,
-            self.position.y - camera.target.y
-                + camera.offset.y,
+            self.position.x - camera.target.x + camera.offset.x,
+            self.position.y - camera.target.y + camera.offset.y,
             self.radius,
             PLAYER_COLOR,
         );
@@ -49,15 +49,10 @@ impl Player {
         }
     }
 
-    pub fn update_camera(
-        self: &Self,
-        camera: &mut Camera2D,
-    ) {
+    pub fn update_camera(self: &Self, camera: &mut Camera2D) {
         camera.offset = Vec2 {
-            x: screen_width() * 0.5f32
-                + self.speed.x * 2f32,
-            y: screen_height() * 0.5f32
-                + self.speed.y * 2f32,
+            x: screen_width() * 0.5f32 + self.speed.x * 2f32,
+            y: screen_height() * 0.5f32 + self.speed.y * 2f32,
         };
 
         camera.target = Vec2 {
