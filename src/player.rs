@@ -1,5 +1,6 @@
 use crate::entity::Entity;
 use macroquad::{
+    camera::Camera2D,
     color::{Color, RED},
     input::is_key_down,
     math::Vec2,
@@ -17,9 +18,7 @@ pub struct Player {
 impl Entity for Player {
     fn update(self: &mut Self) {
         // speed
-        if is_key_down(
-            macroquad::input::KeyCode::Space,
-        ) {
+        if is_key_down(macroquad::input::KeyCode::Space) {
             self.speed.y = 10f32;
         } else {
             self.speed.y = 0f32;
@@ -30,10 +29,10 @@ impl Entity for Player {
         self.position.y += self.speed.y;
     }
 
-    fn draw(self: &mut Self) {
+    fn draw(self: &mut Self, camera: &Camera2D) {
         draw_circle(
-            self.position.x,
-            self.position.y,
+            self.position.x - camera.target.x + camera.offset.x,
+            self.position.y - camera.target.y + camera.offset.y,
             self.radius,
             PLAYER_COLOR,
         );
