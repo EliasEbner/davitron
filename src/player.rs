@@ -54,8 +54,8 @@ impl Player {
 
     pub fn update_camera(self: &Self, camera: &mut Camera2D) {
         camera.offset = Vec2 {
-            x: screen_width() * 0.5f32 + self.speed.x * 2f32,
-            y: screen_height() * 0.5f32 + self.speed.y * 2f32,
+            x: screen_width() * 0.5f32 - self.speed.x * 2f32,
+            y: screen_height() * 0.5f32 - self.speed.y * 2f32,
         };
 
         camera.target = Vec2 {

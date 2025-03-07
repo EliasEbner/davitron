@@ -1,11 +1,10 @@
 use macroquad::camera::Camera2D;
 use macroquad::color::BLACK;
 use macroquad::math::Vec2;
-use macroquad::window::{
-    clear_background, next_frame, screen_height, screen_width,
-};
+use macroquad::window::{clear_background, next_frame, screen_height, screen_width};
 
 use crate::entity::Entity;
+use crate::planet::Planet;
 use crate::player::Player;
 
 mod entity;
@@ -14,8 +13,25 @@ mod player;
 
 #[macroquad::main("MyGame")]
 async fn main() {
-    let mut player: Player = Player::new(100f32);
+    let mut player: Player = Player::new(50f32);
     let mut camera: Camera2D = Camera2D::default();
+    let mut planets: Vec<Planet> = vec![Planet::new(
+        Vec2 {
+            x: 10f32,
+            y: 100f32,
+        },
+        10f32,
+    )];
+
+    for i in 0..10 {
+        planets.push(Planet::new(
+            Vec2 {
+                x: 10f32,
+                y: (i as f32) * -100f32,
+            },
+            10f32,
+        ));
+    }
 
     camera.offset = Vec2 {
         x: screen_width() * 0.5f32,
@@ -27,7 +43,9 @@ async fn main() {
         player.update_camera(&mut camera);
         clear_background(BLACK);
         player.draw(&camera);
-
+        for planet in planets.iter_mut() {
+            planet.draw(&camera);
+        }
         next_frame().await
     }
 }
