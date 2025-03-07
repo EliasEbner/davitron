@@ -18,10 +18,13 @@ pub struct Player {
 
 impl Entity for Player {
     fn update(self: &mut Self) {
-        let mut absSpeed = f32::sqrt(self.speed.y * self.speed.y + self.speed.x * self.speed.x);
-        if absSpeed < 0.1 {absSpeed = 0.1;}
+        let mut abs_speed = f32::sqrt(self.speed.y * self.speed.y + self.speed.x * self.speed.x);
+        if abs_speed < 0.01 {
+            self.speed.y = 0.1;
+            abs_speed = 0.01;
+        }
         let speed_factor =
-            0.95 + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 10f32 / absSpeed;
+            0.95 + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 2f32 / abs_speed;
         self.speed.y *= speed_factor;
         self.speed.x *= speed_factor;
 
