@@ -30,21 +30,11 @@ impl Entity for Planet {
     }
 
     fn draw(self: &mut Self, camera: &Camera2D) {
-<<<<<<< HEAD
-        draw_circle(self.position.x, self.position.y, self.radius, PLAYER_COLOR);
-=======
-        if self.position.x < camera.target.x + camera.offset.x + screen_width()
-            && self.position.x > camera.target.x + camera.offset.x - screen_width()
-            && self.position.y < camera.target.y + camera.offset.y + screen_height()
-            && self.position.y > camera.target.y + camera.offset.y - screen_height()
-        {
-            draw_circle(
-                self.position.x - camera.target.x + camera.offset.x,
-                self.position.y - camera.target.y + camera.offset.y,
-                self.radius,
-                PLANET_COLOR,
-            );
-        }
->>>>>>> refs/remotes/origin/master
+        draw_circle(
+            self.position.x - camera.target.x + camera.offset.x,
+            self.position.y - camera.target.y + camera.offset.y,
+            self.radius,
+            PLANET_COLOR,
+        );
     }
 }
