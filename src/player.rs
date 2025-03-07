@@ -16,14 +16,10 @@ pub struct Player {
 
 impl Entity for Player {
     fn update(self: &mut Self) {
-        // speed
-        if is_key_down(
-            macroquad::input::KeyCode::Space,
-        ) {
-            self.speed.y = 10f32;
-        } else {
-            self.speed.y = 0f32;
-        }
+        self.speed.y = self.speed.y
+            * (0.95
+                + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 10f32
+                    / f32::sqrt(self.speed.y * self.speed.y + self.speed.x * self.speed.x));
 
         // position
         self.position.x += self.speed.x;
@@ -31,12 +27,7 @@ impl Entity for Player {
     }
 
     fn draw(self: &mut Self) {
-        draw_circle(
-            self.position.x,
-            self.position.y,
-            self.radius,
-            PLAYER_COLOR,
-        );
+        draw_circle(self.position.x, self.position.y, self.radius, PLAYER_COLOR);
     }
 }
 
