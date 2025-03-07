@@ -1,11 +1,24 @@
-use macroquad::prelude::*;
+use macroquad::color::BLACK;
+use macroquad::window::{
+    clear_background, next_frame,
+};
+
+use crate::entity::Entity;
+use crate::player::Player;
+
+mod camera;
+mod entity;
+mod player;
 
 #[macroquad::main("MyGame")]
 async fn main() {
-    loop {
-        clear_background(RED);
+    let mut player: Player = Player::new(100f32);
 
-        draw_line(40.0, 40.0, 100.0, 200.0, 15.0, BLUE);
+    loop {
+        player.update();
+        clear_background(BLACK);
+        player.draw();
+
         next_frame().await
     }
 }
