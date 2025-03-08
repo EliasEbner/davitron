@@ -37,8 +37,8 @@ async fn main() {
                 y: (i as f32) * -rand_num_generator.gen_range(10f32, 1000f32),
             },
             Vec2 {
-                x: rand_num_generator.gen_range(-1000f32, 1000f32),
-                y: rand_num_generator.gen_range(-1000f32, 1000f32),
+                x: rand_num_generator.gen_range(-30f32, 30f32), // not uniform!
+                y: rand_num_generator.gen_range(-30f32, 30f32),
             },
             rand_num_generator.gen_range(10f32, 100f32),
         ));

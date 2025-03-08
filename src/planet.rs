@@ -14,11 +14,11 @@ pub struct Planet {
 }
 
 impl Planet {
-    pub fn new(position: Vec2, speed: Vec2, radius: f32) -> Self {
+    pub fn new(position: Vec2, velocity: Vec2, radius: f32) -> Self {
         Self {
             radius,
             position,
-            speed,
+            speed: velocity,
         }
     }
 

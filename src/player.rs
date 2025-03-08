@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use macroquad::{
     camera::Camera2D,
     color::{Color, GREEN, RED},
@@ -52,42 +54,49 @@ impl Player {
                         / abs_speed)
                     * delta_time;
 
-            self.velocity.x *= speed_factor;
-            self.velocity.y *= speed_factor;
+        self.velocity.x *= speed_factor;
+        self.velocity.y *= speed_factor;
 
-            match self.linked_planet_index {
-                Some(linked_planet_index) => {
-                    let linked_planet: &Planet = &planets[linked_planet_index];
+        
+        if (is_key_down(macroquad::input::KeyCode::D)) { // for debugging
+            self.velocity.x = 50f32;
+        }
+        if (is_key_down(macroquad::input::KeyCode::A)) {
+            self.velocity.x = -50f32;
+        }
+        if (is_key_down(macroquad::input::KeyCode::W)) {
+            self.velocity.y = 50f32;
+        }
+        if (is_key_down(macroquad::input::KeyCode::S)) {
+            self.velocity.y = -50f32;
+        }
 
-                    let delta_x = self.position.x - linked_planet.position.x;
-                    let delta_y = self.position.y - linked_planet.position.y;
-                    let abs_dist = f32::sqrt(delta_x * delta_x + delta_y * delta_y);
-                    let angle: f32 = -f32::atan(delta_y / delta_x);
-                    let sin_angle: f32 = f32::sin(angle);
-                    let cos_angle: f32 = f32::cos(angle);
-
-                    let mut old_vel_x: f32 = self.velocity.x;
-                    self.velocity.x = old_vel_x * cos_angle - self.velocity.y * sin_angle;
-                    self.velocity.y = old_vel_x * sin_angle + self.velocity.y * cos_angle;
-
-                    let offset = abs_dist
-                        * (1f32 - f32::cos(f32::asin(self.velocity.y * delta_time / abs_dist)));
-                    // println!("{angle}\noff: {offset}\nabs: {abs_dist}\natan: {}", f32::atan(self.velocity.y/abs_dist));
-
-                    // self.velocity.y += f32::signum(self.velocity.y)
-                    //     * 0.1f32
-                    //     * f32::abs(self.velocity.x + offset * f32::signum(delta_x)); // sqrt(x^2 + y^2) != x + y lol
-                    self.velocity.x =
-                        self.velocity.x * 0.3f32 - 0.7f32 * offset * f32::signum(delta_x);
-
-                    old_vel_x = self.velocity.x;
-                    self.velocity.x = old_vel_x * cos_angle - self.velocity.y * (-sin_angle);
-                    self.velocity.y = old_vel_x * (-sin_angle) + self.velocity.y * cos_angle;
-
-                    self.position += linked_planet.speed * delta_time;
+        match self.linked_planet_index {
+            Some(linked_planet_index) => {
+                let linked_planet: &Planet = &planets[linked_planet_index];
+                
+                abs_vel = f32::sqrt(
+                    self.velocity.y * self.velocity.y + self.velocity.x * self.velocity.x,
+                );
+                let delta_x = self.position.x - linked_planet.position.x;
+                let delta_y = self.position.y - linked_planet.position.y;
+                let abs_dist = f32::sqrt(delta_x * delta_x + delta_y * delta_y);
+                let angle: f32 = f32::atan(delta_y / delta_x);
+                let mut angle_vel: f32 =
+                    f32::rem_euclid(angle + f32::atan(self.velocity.y / self.velocity.x), PI);
+                if angle_vel > PI*0.5 {
+                    angle_vel = PI - angle_vel;
                 }
-                None => {}
+                let angle_for_orbit: f32 = abs_vel * delta_time / abs_dist;
+                println!("{angle_vel}\n{angle_for_orbit}\n");
+                // let mut old_vel_x: f32 = self.velocity.x;
+                // self.velocity.x = old_vel_x * cos_angle - self.velocity.y * sin_angle;
+                // self.velocity.y = old_vel_x * sin_angle + self.velocity.y * cos_angle;
+            
+                self.position += linked_planet.speed * delta_time;
             }
+            None => {}
+        }
 
             // position
             self.position.x += self.velocity.x * delta_time;
