@@ -1,5 +1,7 @@
 [ ] add sprites
-[ ] add danger zone
+[X] add danger zone
+    [ ] add death on enter
+    [ ] tune the acceleration and speed
 [ ] improve controls
 [ ] add shooting
 [ ] add collision detection
