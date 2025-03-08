@@ -28,7 +28,7 @@ impl Entity for Planet {
         // TODO: I don't know what to do here
     }
 
-    fn draw(self: &mut Self, camera: &Camera2D) {
+    fn draw(self: &Self, camera: &Camera2D) {
         draw_circle(
             self.position.x - camera.target.x + camera.offset.x,
             self.position.y - camera.target.y + camera.offset.y,

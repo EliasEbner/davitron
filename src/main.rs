@@ -1,5 +1,6 @@
 use macroquad::camera::Camera2D;
 use macroquad::color::BLACK;
+use macroquad::input::{is_key_pressed, is_key_released, KeyCode};
 use macroquad::math::Vec2;
 use macroquad::rand::RandGenerator;
 use macroquad::time::get_frame_time;
@@ -53,13 +54,29 @@ async fn main() {
     loop {
         let delta_time: f32 = get_frame_time();
 
+        if is_key_pressed(KeyCode::Space) {
+            let mut nearest: (f32, Option<&Planet>) = (f32::INFINITY, None);
+            for p in &planets {
+                let dist = (p.position.x - player.position.x) * (p.position.x - player.position.x)
+                    + (p.position.y - player.position.y) * (p.position.y - player.position.y);
+                if dist < nearest.0 {
+                    nearest.0 = dist;
+                    nearest.1 = Some(p);
+                }
+            }
+            player.linked_planet = nearest.1;
+        }
+        if is_key_released(KeyCode::Space) {
+            player.linked_planet = None;
+        }
         player.update(delta_time);
         player.update_camera(&mut camera);
         clear_background(BLACK);
         player.draw(&camera);
-        for planet in planets.iter_mut() {
+        for planet in &planets {
             planet.draw(&camera);
         }
+
         next_frame().await
     }
 }
