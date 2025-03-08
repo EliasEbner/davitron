@@ -96,7 +96,7 @@ impl Player {
         );
     }
 
-    pub fn let_go_of_planet(self: &mut Self, planets: &Vec<Planet>, delta_time: f32) {
+    pub fn let_go_of_planet(self: &mut Self, planets: &Vec<Planet>) {
         match self.linked_planet_index {
             Some(linked_planet_index) => {
                 let linked_planet = &planets[linked_planet_index];

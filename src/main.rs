@@ -8,10 +8,12 @@ use macroquad::window::{
     clear_background, next_frame, request_new_screen_size, screen_height, screen_width,
 };
 
-use crate::planet::Planet;
-use crate::player::Player;
-use crate::random_generator::get_rand_generator;
+use danger_zone::DangerZone;
+use planet::Planet;
+use player::Player;
+use random_generator::get_rand_generator;
 
+mod danger_zone;
 mod planet;
 mod player;
 mod random_generator;
@@ -24,6 +26,7 @@ async fn main() {
     let mut player: Player = Player::new(50f32);
     let mut camera: Camera2D = Camera2D::default();
     let mut planets: Vec<Planet> = Vec::new();
+    let mut danger_zone: DangerZone = DangerZone::new();
 
     for i in 0..10 {
         planets.push(Planet::new(
@@ -67,18 +70,20 @@ async fn main() {
         }
 
         if is_key_released(KeyCode::Space) {
-            player.let_go_of_planet(&planets, delta_time);
+            player.let_go_of_planet(&planets);
         }
 
         player.update_camera(&mut camera);
         player.update(&planets, delta_time);
 
+        danger_zone.update(delta_time);
+
         for planet in &mut planets {
             planet.update(delta_time);
         }
-
         clear_background(BLACK);
         player.draw(&planets, &camera);
+        danger_zone.draw(&camera);
         for planet in &planets {
             planet.draw(&camera);
         }
