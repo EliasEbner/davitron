@@ -9,7 +9,7 @@ const PLANET_COLOR: Color = BLUE;
 
 pub struct Planet {
     pub position: Vec2,
-    pub speed: Vec2,
+    pub velocity: Vec2,
     pub radius: f32,
 }
 
@@ -18,13 +18,13 @@ impl Planet {
         Self {
             radius,
             position,
-            speed: velocity,
+            velocity,
         }
     }
 
     pub fn update(self: &mut Self, delta_time: f32) {
-        self.position.x += self.speed.x * delta_time;
-        self.position.y += self.speed.y * delta_time;
+        self.position.x += self.velocity.x * delta_time;
+        self.position.y += self.velocity.y * delta_time;
     }
 
     pub fn draw(self: &Self, camera: &Camera2D) {
