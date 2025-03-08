@@ -67,7 +67,7 @@ async fn main() {
         }
 
         if is_key_released(KeyCode::Space) {
-            player.linked_planet_index = None;
+            player.let_go_of_planet(&planets, delta_time);
         }
 
         player.update_camera(&mut camera);

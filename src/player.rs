@@ -63,8 +63,7 @@ impl Player {
                 self.velocity.x = old_vel_x * cos_angle - self.velocity.y * (-sin_angle);
                 self.velocity.y = old_vel_x * (-sin_angle) + self.velocity.y * cos_angle;
 
-                self.position.x += linked_planet.speed.x * delta_time;
-                self.position.y += linked_planet.speed.y * delta_time;
+                self.position += linked_planet.speed * delta_time;
             }
             None => {}
         }
@@ -95,6 +94,18 @@ impl Player {
             self.radius,
             PLAYER_COLOR,
         );
+    }
+
+    pub fn let_go_of_planet(self: &mut Self, planets: &Vec<Planet>, delta_time: f32) {
+        match self.linked_planet_index {
+            Some(linked_planet_index) => {
+                let linked_planet = &planets[linked_planet_index];
+                self.velocity += linked_planet.speed;
+
+                self.linked_planet_index = None;
+            }
+            None => {}
+        }
     }
 
     pub fn new(radius: f32) -> Self {
