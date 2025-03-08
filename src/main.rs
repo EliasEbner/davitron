@@ -5,44 +5,32 @@ use macroquad::math::Vec2;
 use macroquad::rand::RandGenerator;
 use macroquad::time::get_frame_time;
 use macroquad::window::{clear_background, next_frame, screen_height, screen_width};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::entity::Entity;
 use crate::planet::Planet;
 use crate::player::Player;
+use crate::random_generator::get_rand_generator;
 
 mod entity;
 mod planet;
 mod player;
+mod random_generator;
 
 #[macroquad::main("MyGame")]
 async fn main() {
-    // random number generator
-    let rng = RandGenerator::new();
-    // this is the seed of the number generator (the current time in milliseconds)
-    let current_time = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("yooo, the time is all fucked up 'n shit")
-        .as_millis();
-    rng.srand(current_time as u64);
+    let rand_num_generator: RandGenerator = get_rand_generator();
 
     let mut player: Player = Player::new(50f32);
     let mut camera: Camera2D = Camera2D::default();
-    let mut planets: Vec<Planet> = vec![Planet::new(
-        Vec2 {
-            x: 10f32,
-            y: 100f32,
-        },
-        10f32,
-    )];
+    let mut planets: Vec<Planet> = Vec::new();
 
     for i in 0..10 {
         planets.push(Planet::new(
             Vec2 {
-                x: rng.gen_range(0f32, screen_width()),
-                y: (i as f32) * -rng.gen_range(10f32, 1000f32),
+                x: rand_num_generator.gen_range(0f32, screen_width()),
+                y: (i as f32) * -rand_num_generator.gen_range(10f32, 1000f32),
             },
-            rng.gen_range(10f32, 100f32),
+            rand_num_generator.gen_range(10f32, 100f32),
         ));
     }
 
@@ -64,13 +52,23 @@ async fn main() {
                     nearest.1 = Some(p);
                 }
             }
-            player.linked_planet = nearest.1;
+            match nearest.1 {
+                Some(planet) => player.linked_planet_position = Some(planet.position),
+                None => player.linked_planet_position = None,
+            }
         }
+
         if is_key_released(KeyCode::Space) {
-            player.linked_planet = None;
+            player.linked_planet_position = None;
         }
+
         player.update(delta_time);
         player.update_camera(&mut camera);
+
+        for p in &mut planets {
+            p.update(delta_time);
+        }
+
         clear_background(BLACK);
         player.draw(&camera);
         for planet in &planets {
