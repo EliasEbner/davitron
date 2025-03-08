@@ -7,7 +7,7 @@ use macroquad::{
     window::{screen_height, screen_width},
 };
 
-use crate::entity::Entity;
+use crate::planet::Planet;
 
 const PLAYER_COLOR: Color = RED;
 
@@ -15,29 +15,32 @@ pub struct Player {
     pub position: Vec2,
     pub velocity: Vec2,
     pub radius: f32,
-    pub linked_planet_position: Option<Vec2>,
+    pub linked_planet_index: Option<usize>,
 }
 
-impl Entity for Player {
-    fn update(self: &mut Self, delta_time: f32) {
-        let mut abs_vel =
+impl Player {
+    pub fn update(self: &mut Self, planets: &Vec<Planet>, delta_time: f32) {
+        let mut abs_speed =
             f32::sqrt(self.velocity.y * self.velocity.y + self.velocity.x * self.velocity.x);
-        if abs_vel < 0.0001 {
+        if abs_speed < 0.0001 {
             self.velocity.y = -0.01;
-            abs_vel = 0.0001;
+            abs_speed = 0.0001;
         }
 
         let speed_factor = 1f32
-            + (-0.5 + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 200f32 / abs_vel)
+            + (-0.5
+                + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 200f32 / abs_speed)
                 * delta_time;
 
         self.velocity.x *= speed_factor;
         self.velocity.y *= speed_factor;
 
-        match self.linked_planet_position {
-            Some(linked_planet_position) => {
-                let delta_x = self.position.x - linked_planet_position.x;
-                let delta_y = self.position.y - linked_planet_position.y;
+        match self.linked_planet_index {
+            Some(linked_planet_index) => {
+                let linked_planet: &Planet = &planets[linked_planet_index];
+
+                let delta_x = self.position.x - linked_planet.position.x;
+                let delta_y = self.position.y - linked_planet.position.y;
                 let abs_dist = f32::sqrt(delta_x * delta_x + delta_y * delta_y);
                 let angle: f32 = -f32::atan(delta_y / delta_x);
                 let sin_angle: f32 = f32::sin(angle);
@@ -59,6 +62,9 @@ impl Entity for Player {
                 old_vel_x = self.velocity.x;
                 self.velocity.x = old_vel_x * cos_angle - self.velocity.y * (-sin_angle);
                 self.velocity.y = old_vel_x * (-sin_angle) + self.velocity.y * cos_angle;
+
+                self.position.x += linked_planet.speed.x * delta_time;
+                self.position.y += linked_planet.speed.y * delta_time;
             }
             None => {}
         }
@@ -68,9 +74,10 @@ impl Entity for Player {
         self.position.y += self.velocity.y * delta_time;
     }
 
-    fn draw(self: &Self, camera: &Camera2D) {
-        match self.linked_planet_position {
-            Some(linked_planet_position) => {
+    pub fn draw(self: &Self, planets: &Vec<Planet>, camera: &Camera2D) {
+        match self.linked_planet_index {
+            Some(linked_planet_index) => {
+                let linked_planet_position = planets[linked_planet_index].position;
                 draw_line(
                     self.position.x - camera.target.x + camera.offset.x,
                     self.position.y - camera.target.y + camera.offset.y,
@@ -89,15 +96,13 @@ impl Entity for Player {
             PLAYER_COLOR,
         );
     }
-}
 
-impl Player {
     pub fn new(radius: f32) -> Self {
         Self {
             radius,
             position: Vec2::default(),
             velocity: Vec2::default(),
-            linked_planet_position: None,
+            linked_planet_index: None,
         }
     }
 

@@ -2,11 +2,8 @@ use macroquad::{
     camera::Camera2D,
     color::{Color, BLUE},
     math::Vec2,
-    rand::RandGenerator,
     shapes::draw_circle,
 };
-
-use crate::{entity::Entity, random_generator::get_rand_generator};
 
 const PLANET_COLOR: Color = BLUE;
 
@@ -17,25 +14,20 @@ pub struct Planet {
 }
 
 impl Planet {
-    pub fn new(position: Vec2, radius: f32) -> Self {
-        let random_num_generator: RandGenerator = get_rand_generator();
+    pub fn new(position: Vec2, speed: Vec2, radius: f32) -> Self {
         Self {
             radius,
             position,
-            speed: Vec2::from((
-                random_num_generator.gen_range(-1000f32, 1000f32),
-                random_num_generator.gen_range(-1000f32, 1000f32),
-            )),
+            speed,
         }
     }
-}
-impl Entity for Planet {
-    fn update(self: &mut Self, delta_time: f32) {
+
+    pub fn update(self: &mut Self, delta_time: f32) {
         self.position.x += self.speed.x * delta_time;
         self.position.y += self.speed.y * delta_time;
     }
 
-    fn draw(self: &Self, camera: &Camera2D) {
+    pub fn draw(self: &Self, camera: &Camera2D) {
         draw_circle(
             self.position.x - camera.target.x + camera.offset.x,
             self.position.y - camera.target.y + camera.offset.y,
