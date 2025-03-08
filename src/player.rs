@@ -41,21 +41,21 @@ impl Player {
         if self.check_danger_zone_collision(danger_zone) {
             self.die();
         } else {
-            let mut abs_speed =
+            let mut abs_velocity =
                 f32::sqrt(self.velocity.y * self.velocity.y + self.velocity.x * self.velocity.x);
-            if abs_speed < 0.0001 {
+            if abs_velocity < 0.0001 {
                 self.velocity.y = -0.01;
-                abs_speed = 0.0001;
+                abs_velocity = 0.0001;
             }
 
-            let speed_factor = 1f32
+            let velocity_factor = 1f32
                 + (-0.5
                     + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 200f32
-                        / abs_speed)
+                        / abs_velocity)
                     * delta_time;
 
-        self.velocity.x *= speed_factor;
-        self.velocity.y *= speed_factor;
+        self.velocity.x *= velocity_factor;
+        self.velocity.y *= velocity_factor;
 
         if is_key_down(macroquad::input::KeyCode::D) {
             // for debugging
