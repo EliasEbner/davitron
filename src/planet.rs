@@ -3,7 +3,6 @@ use macroquad::{
     color::{Color, BLUE},
     math::Vec2,
     shapes::draw_circle,
-    window::{screen_height, screen_width},
 };
 
 use crate::entity::Entity;
@@ -25,7 +24,7 @@ impl Planet {
     }
 }
 impl Entity for Planet {
-    fn update(self: &mut Self) {
+    fn update(self: &mut Self, delta_time: f32) {
         // TODO: I don't know what to do here
     }
 

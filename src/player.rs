@@ -17,20 +17,23 @@ pub struct Player {
 }
 
 impl Entity for Player {
-    fn update(self: &mut Self) {
+    fn update(self: &mut Self, delta_time: f32) {
         let mut abs_speed = f32::sqrt(self.speed.y * self.speed.y + self.speed.x * self.speed.x);
+
         if abs_speed < 0.01 {
             self.speed.y = -0.1;
             abs_speed = 0.01;
         }
+
         let speed_factor =
-            0.95 + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 2f32 / abs_speed;
+            0.95 + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 50f32 / abs_speed;
+
         self.speed.y *= speed_factor;
         self.speed.x *= speed_factor;
 
         // position
-        self.position.x += self.speed.x;
-        self.position.y += self.speed.y;
+        self.position.x += self.speed.x * delta_time;
+        self.position.y += self.speed.y * delta_time;
     }
 
     fn draw(self: &mut Self, camera: &Camera2D) {
@@ -54,8 +57,8 @@ impl Player {
 
     pub fn update_camera(self: &Self, camera: &mut Camera2D) {
         camera.offset = Vec2 {
-            x: screen_width() * 0.5f32 - self.speed.x * 2f32,
-            y: screen_height() * 0.5f32 - self.speed.y * 2f32,
+            x: screen_width() * 0.5f32 - self.speed.x * 0.2f32,
+            y: screen_height() * 0.5f32 - self.speed.y * 0.2f32,
         };
 
         camera.target = Vec2 {
