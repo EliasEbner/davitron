@@ -42,9 +42,8 @@ impl<'a> Entity for Player<'a> {
             let cos_angle: f32 = f32::cos(angle);
 
             let mut old_vel_x: f32 = self.velocity.x;
-            let mut old_vel_y: f32 = self.velocity.y;
-            self.velocity.x = old_vel_x * cos_angle - old_vel_y * sin_angle;
-            self.velocity.y = old_vel_x * sin_angle + old_vel_y * cos_angle;
+            self.velocity.x = old_vel_x * cos_angle - self.velocity.y * sin_angle;
+            self.velocity.y = old_vel_x * sin_angle + self.velocity.y * cos_angle;
 
             let offset =
                 abs_dist * (1f32 - f32::cos(f32::atan(self.velocity.y * delta_time / abs_dist)));
@@ -56,9 +55,8 @@ impl<'a> Entity for Player<'a> {
             self.velocity.x = self.velocity.x * 0.3f32 - 0.7f32 * offset * f32::signum(delta_x);
 
             old_vel_x = self.velocity.x;
-            old_vel_y = self.velocity.y;
-            self.velocity.x = old_vel_x * cos_angle - old_vel_y * (-sin_angle);
-            self.velocity.y = old_vel_x * (-sin_angle) + old_vel_y * cos_angle;
+            self.velocity.x = old_vel_x * cos_angle - self.velocity.y * (-sin_angle);
+            self.velocity.y = old_vel_x * (-sin_angle) + self.velocity.y * cos_angle;
         }
 
         // position
