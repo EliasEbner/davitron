@@ -2,7 +2,9 @@ use macroquad::camera::Camera2D;
 use macroquad::color::BLACK;
 use macroquad::input::{is_key_pressed, is_key_released, KeyCode};
 use macroquad::math::Vec2;
+use macroquad::miniquad::gl::{GL_FRONT, GL_FRONT_AND_BACK};
 use macroquad::rand::RandGenerator;
+use macroquad::text::{draw_text, measure_text, Font, TextDimensions};
 use macroquad::time::get_frame_time;
 use macroquad::window::{
     clear_background, next_frame, request_new_screen_size, screen_height, screen_width,
@@ -74,7 +76,7 @@ async fn main() {
         }
 
         player.update_camera(&mut camera);
-        player.update(&planets, delta_time);
+        player.update(&planets, &danger_zone, delta_time);
 
         danger_zone.update(delta_time);
 
@@ -86,6 +88,16 @@ async fn main() {
         danger_zone.draw(&camera);
         for planet in &planets {
             planet.draw(&camera);
+        }
+
+        if player.is_dead {
+            draw_text(
+                "YOU DIED LOSER",
+                screen_width() / 2f32 - 306.25 / 2f32,
+                screen_height() / 2f32 - 25f32 / 2f32,
+                50f32,
+                BLACK,
+            );
         }
 
         next_frame().await

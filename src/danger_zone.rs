@@ -6,8 +6,8 @@ use macroquad::{
 };
 
 pub struct DangerZone {
-    position_y: f32,
-    speed_y: f32,
+    pub position_y: f32,
+    pub speed_y: f32,
 }
 
 const INITIAL_VERTICAL_SPEED: f32 = -10f32;
