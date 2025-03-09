@@ -20,7 +20,7 @@ impl DangerZone {
     }
 
     pub fn update(self: &mut Self, delta_time: f32) {
-        self.speed_y += (self.speed_y * 1.00000001) * delta_time;
+        self.speed_y *= (1f32 + 0.5 * delta_time);
         self.position_y += self.speed_y * delta_time;
     }
 

@@ -49,8 +49,8 @@ impl Player {
             }
 
             let velocity_factor = 1f32
-                + (-0.5
-                    + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 200f32
+                + (-2f32
+                    + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 2000f32
                         / abs_velocity)
                     * delta_time;
 
@@ -94,7 +94,7 @@ impl Player {
                     angle_diff = -angle_diff;
                 }
 
-                let max_rotation = 3.0 * delta_time;
+                let max_rotation = 6.0 * delta_time; // per second
                 let rotation_angle = angle_diff.clamp(-max_rotation, max_rotation);
 
                 // rotate velocity:
