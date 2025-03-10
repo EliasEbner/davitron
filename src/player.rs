@@ -49,74 +49,67 @@ impl Player {
             }
 
             let velocity_factor = 1f32
-                + (-2f32
+                + (-1.2f32
                     + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 2000f32
                         / abs_velocity)
                     * delta_time;
 
-        self.velocity.x *= velocity_factor;
-        self.velocity.y *= velocity_factor;
+            self.velocity.x *= velocity_factor;
+            self.velocity.y *= velocity_factor;
 
-        if is_key_down(macroquad::input::KeyCode::D) {
-            // for debugging
-            self.velocity.x = 50f32;
-        }
-        if is_key_down(macroquad::input::KeyCode::A) {
-            self.velocity.x = -50f32;
-        }
-        if is_key_down(macroquad::input::KeyCode::W) {
-            self.velocity.y = 50f32;
-        }
-        if is_key_down(macroquad::input::KeyCode::S) {
-            self.velocity.y = -50f32;
-        }
+            //     // for debugging
+            // if is_key_down(macroquad::input::KeyCode::D) {
+            //     self.velocity.x = 50f32;
+            // }
+            // if is_key_down(macroquad::input::KeyCode::A) {
+            //     self.velocity.x = -50f32;
+            // }
+            // if is_key_down(macroquad::input::KeyCode::W) {
+            //     self.velocity.y = 50f32;
+            // }
+            // if is_key_down(macroquad::input::KeyCode::S) {
+            //     self.velocity.y = -50f32;
+            // }
 
-        match self.linked_planet_index {
-            Some(linked_planet_index) => {
-                let linked_planet: &Planet = &planets[linked_planet_index];
+            match self.linked_planet_index {
+                Some(linked_planet_index) => {
+                    let linked_planet: &Planet = &planets[linked_planet_index];
 
-                let to_planet = linked_planet.position - self.position;
-                let current_direction = self.velocity.normalize();
-                let mut target_direction = Vec2::new(-to_planet.y, to_planet.x).normalize();
-                if (current_direction - target_direction).length() > SQRT_2 {
-                    target_direction *= -1f32;
+                    let to_planet = linked_planet.position - self.position;
+
+                    let mut angle_diff = (to_planet.y.atan2(to_planet.x)
+                        - self.velocity.y.atan2(self.velocity.x))
+                        % PI;
+                    if angle_diff > 0.0 {
+                        angle_diff -= 0.5 * PI;
+                    } else {
+                        angle_diff += 0.5 * PI;
+                    };
+
+                    let max_rotation = 6.0 * delta_time; // rotation per second
+                    let rotation_angle = angle_diff.clamp(-max_rotation, max_rotation);
+
+                    // rotate velocity:
+                    let sin_angle = rotation_angle.sin();
+                    let cos_angle = rotation_angle.cos();
+                    let old_vel_x = self.velocity.x;
+                    self.velocity.x = old_vel_x * cos_angle - self.velocity.y * sin_angle;
+                    self.velocity.y = old_vel_x * sin_angle + self.velocity.y * cos_angle;
+
+                    // correcting so that you don't drift outward (no clue why it doesn't work properly)
+                    self.velocity += to_planet.normalize()
+                        * (1f32
+                            - f32::cos(f32::asin(
+                                (self.velocity.length() * delta_time / to_planet.length())
+                                    .min(1f32),
+                            )))
+                        / delta_time;
+
+                    // 'not so clean linking solution'™
+                    self.position += linked_planet.velocity * delta_time;
                 }
-
-                // dot(A, B) = |A| * |B| * cos(theta)
-                // |A| = |B| = 1 => theta = acos(dot(A, B))
-                let dot_product = current_direction.dot(target_direction);
-                let mut angle_diff = dot_product.acos();
-
-                // determinant for direction
-                let cross_product = current_direction.x * target_direction.y
-                    - current_direction.y * target_direction.x;
-                if cross_product < 0.0 {
-                    angle_diff = -angle_diff;
-                }
-
-                let max_rotation = 6.0 * delta_time; // per second
-                let rotation_angle = angle_diff.clamp(-max_rotation, max_rotation);
-
-                // rotate velocity:
-                let sin_angle = rotation_angle.sin();
-                let cos_angle = rotation_angle.cos();
-                let old_vel_x = self.velocity.x;
-                self.velocity.x = old_vel_x * cos_angle - self.velocity.y * sin_angle;
-                self.velocity.y = old_vel_x * sin_angle + self.velocity.y * cos_angle;
-
-                // correcting so that you don't drift outward (no clue why it doesn't work properly)
-                self.velocity += to_planet.normalize()
-                    * (1f32
-                        - f32::cos(f32::asin(
-                            (self.velocity.length() * delta_time / to_planet.length()).min(1f32),
-                        )))
-                    / delta_time;
-                
-                // 'not so clean linking solution'™
-                self.position += linked_planet.velocity * delta_time;
+                None => {}
             }
-            None => {}
-        }
 
             // position
             self.position.x += self.velocity.x * delta_time;
