@@ -1,16 +1,18 @@
-use macroquad::{
-    camera::Camera2D,
-    color::{Color, BLUE},
-    math::Vec2,
-    shapes::draw_circle,
-};
+use crate::particle_controller::ParticleController;
+use macroquad::{camera::Camera2D, color::Color, math::Vec2};
 
-const PLANET_COLOR: Color = BLUE;
+const PLANET_COLOR: Color = Color {
+    r: 0.0,
+    g: 0.0,
+    b: 1.0,
+    a: 0.3,
+};
 
 pub struct Planet {
     pub position: Vec2,
     pub velocity: Vec2,
     pub radius: f32,
+    pub particle_controller: ParticleController,
 }
 
 impl Planet {
@@ -19,21 +21,25 @@ impl Planet {
             radius,
             position,
             velocity,
+            particle_controller: ParticleController::new(
+                0.003,
+                radius * 1.2,
+                radius * 0.4,
+                PLANET_COLOR,
+                0.5,
+            ),
         }
     }
 
     pub fn update(self: &mut Self, delta_time: f32) {
-        self.position.x += self.velocity.x * delta_time;
-        self.position.y += self.velocity.y * delta_time;
+        self.particle_controller.update(delta_time, self.position);
+        let change = self.velocity * delta_time;
+        self.position += change;
+        self.particle_controller.inherit_movement(change);
     }
 
     pub fn draw(self: &Self, camera: &Camera2D) {
-        draw_circle(
-            self.position.x - camera.target.x + camera.offset.x,
-            self.position.y - camera.target.y + camera.offset.y,
-            self.radius,
-            PLANET_COLOR,
-        );
+        self.particle_controller.draw(camera);
     }
 
     pub fn handle_collistion(self: &mut Self, other: &mut Planet) {

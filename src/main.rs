@@ -15,6 +15,8 @@ use player::Player;
 use random_generator::get_rand_generator;
 
 mod danger_zone;
+mod particle;
+mod particle_controller;
 mod planet;
 mod player;
 mod random_generator;
@@ -77,7 +79,7 @@ async fn main() {
         player.update_camera(&mut camera);
         player.update(&planets, &danger_zone, delta_time);
 
-        danger_zone.update(delta_time);
+        danger_zone.update(delta_time, player.position.x);
 
         for planet in &mut planets {
             planet.update(delta_time);

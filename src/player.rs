@@ -2,16 +2,28 @@ use std::f32::consts::PI;
 
 use macroquad::{
     camera::Camera2D,
-    color::{Color, GREEN, RED},
+    color::{Color, GREEN},
     input::is_key_down,
     math::Vec2,
-    shapes::{draw_circle, draw_line},
+    shapes::draw_line,
     window::{screen_height, screen_width},
 };
 
-use crate::{danger_zone::DangerZone, planet::Planet};
+use crate::{danger_zone::DangerZone, particle_controller::ParticleController, planet::Planet};
 
-const PLAYER_COLOR: Color = RED;
+const PLAYER_COLOR: Color = Color {
+    r: 0.3,
+    g: 0.7,
+    b: 0.0,
+    a: 0.3,
+};
+
+const PLAYER_PARTICLE_COLOR: Color = Color {
+    r: 0.5,
+    g: 0.2,
+    b: 0.0,
+    a: 0.3,
+};
 
 pub struct Player {
     pub position: Vec2,
@@ -19,6 +31,8 @@ pub struct Player {
     pub radius: f32,
     pub linked_planet_index: Option<usize>,
     pub is_dead: bool,
+    pub particle_controller: ParticleController,
+    pub particle_controller_trails: ParticleController,
 }
 
 impl Player {
@@ -29,6 +43,20 @@ impl Player {
             velocity: Vec2::default(),
             linked_planet_index: None,
             is_dead: false,
+            particle_controller: ParticleController::new(
+                0.005,
+                radius * 1.2,
+                radius * 0.4,
+                PLAYER_COLOR,
+                0.5,
+            ),
+            particle_controller_trails: ParticleController::new(
+                0.02,
+                radius * 0.5,
+                radius * 0.2,
+                PLAYER_PARTICLE_COLOR,
+                1.0,
+            ),
         }
     }
 
@@ -40,81 +68,86 @@ impl Player {
     ) {
         if self.check_danger_zone_collision(danger_zone) {
             self.die();
-        } else {
-            let mut abs_velocity =
-                f32::sqrt(self.velocity.y * self.velocity.y + self.velocity.x * self.velocity.x);
-            if abs_velocity < 0.0001 {
-                self.velocity.y = -0.01;
-                abs_velocity = 0.0001;
-            }
-
-            let velocity_factor = 1f32
-                + (-1.2f32
-                    + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 2000f32
-                        / abs_velocity)
-                    * delta_time;
-
-            self.velocity.x *= velocity_factor;
-            self.velocity.y *= velocity_factor;
-
-            //     // for debugging
-            // if is_key_down(macroquad::input::KeyCode::D) {
-            //     self.velocity.x = 50f32;
-            // }
-            // if is_key_down(macroquad::input::KeyCode::A) {
-            //     self.velocity.x = -50f32;
-            // }
-            // if is_key_down(macroquad::input::KeyCode::W) {
-            //     self.velocity.y = 50f32;
-            // }
-            // if is_key_down(macroquad::input::KeyCode::S) {
-            //     self.velocity.y = -50f32;
-            // }
-
-            match self.linked_planet_index {
-                Some(linked_planet_index) => {
-                    let linked_planet: &Planet = &planets[linked_planet_index];
-
-                    let to_planet = linked_planet.position - self.position;
-
-                    let mut angle_diff = (to_planet.y.atan2(to_planet.x)
-                        - self.velocity.y.atan2(self.velocity.x))
-                        % PI;
-                    if angle_diff > 0.0 {
-                        angle_diff -= 0.5 * PI;
-                    } else {
-                        angle_diff += 0.5 * PI;
-                    };
-
-                    let max_rotation = 6.0 * delta_time; // rotation per second
-                    let rotation_angle = angle_diff.clamp(-max_rotation, max_rotation);
-
-                    // rotate velocity:
-                    let sin_angle = rotation_angle.sin();
-                    let cos_angle = rotation_angle.cos();
-                    let old_vel_x = self.velocity.x;
-                    self.velocity.x = old_vel_x * cos_angle - self.velocity.y * sin_angle;
-                    self.velocity.y = old_vel_x * sin_angle + self.velocity.y * cos_angle;
-
-                    // correcting so that you don't drift outward (no clue why it doesn't work properly)
-                    self.velocity += to_planet.normalize()
-                        * (1f32
-                            - f32::cos(f32::asin(
-                                (self.velocity.length() * delta_time / to_planet.length())
-                                    .min(1f32),
-                            )))
-                        / delta_time;
-
-                    // 'not so clean linking solution'™
-                    self.position += linked_planet.velocity * delta_time;
-                }
-                None => {}
-            }
-
-            // position
-            self.position.x += self.velocity.x * delta_time;
-            self.position.y += self.velocity.y * delta_time;
+            return;
         }
+        self.particle_controller.update(delta_time, self.position);
+        self.particle_controller_trails
+            .update(delta_time, self.position);
+
+        let mut abs_velocity =
+            f32::sqrt(self.velocity.y * self.velocity.y + self.velocity.x * self.velocity.x);
+        if abs_velocity < 0.0001 {
+            self.velocity.y = -0.01;
+            abs_velocity = 0.0001;
+        }
+
+        let velocity_factor = 1f32
+            + (-1.2f32
+                + f32::from(is_key_down(macroquad::input::KeyCode::Space)) * 2000f32
+                    / abs_velocity)
+                * delta_time;
+
+        self.velocity.x *= velocity_factor;
+        self.velocity.y *= velocity_factor;
+
+        //     // for debugging
+        // if is_key_down(macroquad::input::KeyCode::D) {
+        //     self.velocity.x = 50f32;
+        // }
+        // if is_key_down(macroquad::input::KeyCode::A) {
+        //     self.velocity.x = -50f32;
+        // }
+        // if is_key_down(macroquad::input::KeyCode::W) {
+        //     self.velocity.y = 50f32;
+        // }
+        // if is_key_down(macroquad::input::KeyCode::S) {
+        //     self.velocity.y = -50f32;
+        // }
+
+        match self.linked_planet_index {
+            Some(linked_planet_index) => {
+                let linked_planet: &Planet = &planets[linked_planet_index];
+
+                let to_planet = linked_planet.position - self.position;
+
+                let mut angle_diff =
+                    (to_planet.y.atan2(to_planet.x) - self.velocity.y.atan2(self.velocity.x)) % PI;
+                if angle_diff > 0.0 {
+                    angle_diff -= 0.5 * PI;
+                } else {
+                    angle_diff += 0.5 * PI;
+                };
+
+                let max_rotation = 6.0 * delta_time; // rotation per second
+                let rotation_angle = angle_diff.clamp(-max_rotation, max_rotation);
+
+                // rotate velocity:
+                let sin_angle = rotation_angle.sin();
+                let cos_angle = rotation_angle.cos();
+                let old_vel_x = self.velocity.x;
+                self.velocity.x = old_vel_x * cos_angle - self.velocity.y * sin_angle;
+                self.velocity.y = old_vel_x * sin_angle + self.velocity.y * cos_angle;
+
+                // correcting so that you don't drift outward (no clue why it doesn't work properly)
+                self.velocity += to_planet.normalize()
+                    * (1f32
+                        - f32::cos(f32::asin(
+                            (self.velocity.length() * delta_time / to_planet.length()).min(1f32),
+                        )))
+                    / delta_time;
+
+                // 'not so clean linking solution'™
+                let change = linked_planet.velocity * delta_time;
+                self.position += change;
+                self.particle_controller.inherit_movement(change);
+            }
+            None => {}
+        }
+
+        // position
+        let change = self.velocity * delta_time;
+        self.position += change;
+        self.particle_controller.inherit_movement(change);
     }
 
     fn die(self: &mut Self) {
@@ -144,12 +177,8 @@ impl Player {
             }
             None => {}
         }
-        draw_circle(
-            self.position.x - camera.target.x + camera.offset.x,
-            self.position.y - camera.target.y + camera.offset.y,
-            self.radius,
-            PLAYER_COLOR,
-        );
+        self.particle_controller_trails.draw(camera);
+        self.particle_controller.draw(camera);
     }
 
     pub fn let_go_of_planet(self: &mut Self, planets: &Vec<Planet>) {
