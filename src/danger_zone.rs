@@ -10,7 +10,7 @@ pub struct DangerZone {
     pub speed_y: f32,
 }
 
-const INITIAL_VERTICAL_SPEED: f32 = -10f32;
+const INITIAL_VERTICAL_SPEED: f32 = -20f32;
 impl DangerZone {
     pub fn new() -> Self {
         return DangerZone {
@@ -20,7 +20,7 @@ impl DangerZone {
     }
 
     pub fn update(self: &mut Self, delta_time: f32) {
-        self.speed_y *= (1f32 + 0.5 * delta_time);
+        self.speed_y *= 1f32 + 0.2 * delta_time;
         self.position_y += self.speed_y * delta_time;
     }
 

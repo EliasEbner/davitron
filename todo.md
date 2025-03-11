@@ -4,6 +4,7 @@
     [ ] tune the acceleration and speed
 [ ] improve controls
 [ ] add shooting
-[ ] add collision detection
+[X] add collision detection
 [ ] add outer bounds
 [ ] add enemies (?)
+[ ] zoom out more the faster you are!!!

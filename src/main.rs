@@ -2,9 +2,8 @@ use macroquad::camera::Camera2D;
 use macroquad::color::BLACK;
 use macroquad::input::{is_key_pressed, is_key_released, KeyCode};
 use macroquad::math::Vec2;
-use macroquad::miniquad::gl::{GL_FRONT, GL_FRONT_AND_BACK};
 use macroquad::rand::RandGenerator;
-use macroquad::text::{draw_text, measure_text, Font, TextDimensions};
+use macroquad::text::draw_text;
 use macroquad::time::get_frame_time;
 use macroquad::window::{
     clear_background, next_frame, request_new_screen_size, screen_height, screen_width,
@@ -83,6 +82,24 @@ async fn main() {
         for planet in &mut planets {
             planet.update(delta_time);
         }
+
+        for planet in &mut planets {
+            if (player.position - planet.position).length() < player.radius + planet.radius {
+                player.handle_collistion(planet);
+            }
+        }
+
+        for i in 0..(planets.len() - 1) {
+            let (left, right) = planets.split_at_mut(i + 1);
+            for j in 0..right.len() {
+                if (left[i].position - right[j].position).length()
+                    < left[i].radius + right[j].radius
+                {
+                    left[i].handle_collistion(&mut right[j]);
+                }
+            }
+        }
+
         clear_background(BLACK);
         player.draw(&planets, &camera);
         danger_zone.draw(&camera);
