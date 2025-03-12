@@ -45,6 +45,14 @@ impl ParticleController {
             self.particles[i].position.y += change.y;
         }
     }
+    pub fn shift_color(self: &mut Self, r: f32, g: f32, b: f32, a: f32) {
+        for i in 0..self.particles.len() {
+            self.particles[i].color.r += r;
+            self.particles[i].color.g += g;
+            self.particles[i].color.b += b;
+            self.particles[i].color.a += a;
+        }
+    }
     pub fn update(self: &mut Self, delta_time: f32, position: Vec2) {
         for i in 0..self.particles.len() {
             self.particles[i].update(delta_time);
@@ -75,6 +83,7 @@ impl ParticleController {
         }
     }
     pub fn spawn(self: &mut Self, position: Vec2) {
+        // TODO: skip if not on screen
         let rand_angle = self.random_generator.gen_range(0.0, 2.0 * PI);
         self.particles.push(Particle::new(
             position,
@@ -91,12 +100,14 @@ impl ParticleController {
         let rand_angle = self.random_generator.gen_range(0.0, 2.0 * PI);
         self.particles.push(Particle::new(
             Vec2 {
-                x: self
-                    .random_generator
-                    .gen_range(from_position.x, to_position.x),
-                y: self
-                    .random_generator
-                    .gen_range(from_position.y, to_position.y),
+                x: self.random_generator.gen_range(
+                    from_position.x + self.initial_radius,
+                    to_position.x - self.initial_radius,
+                ),
+                y: self.random_generator.gen_range(
+                    from_position.y + self.initial_radius,
+                    to_position.y - self.initial_radius,
+                ),
             },
             Vec2 {
                 x: rand_angle.cos() * self.initial_velocity,

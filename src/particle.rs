@@ -31,7 +31,6 @@ impl Particle {
         self.time_left -= delta_time;
         self.position.x += self.velocity.x * delta_time;
         self.position.y += self.velocity.y * delta_time;
-        self.color.r += delta_time;
         if self.time_left < self.color.a {
             self.color.a = self.time_left;
         }

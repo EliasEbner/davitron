@@ -9,20 +9,20 @@ use macroquad::{
     window::{screen_height, screen_width},
 };
 
-use crate::{danger_zone::DangerZone, particle_controller::ParticleController, planet::Planet};
+use crate::{particle_controller::ParticleController, planet::Planet};
 
 const PLAYER_COLOR: Color = Color {
     r: 0.3,
     g: 0.7,
     b: 0.0,
-    a: 0.3,
+    a: 0.2,
 };
 
 const PLAYER_PARTICLE_COLOR: Color = Color {
-    r: 0.5,
-    g: 0.2,
+    r: 1.0,
+    g: 0.1,
     b: 0.0,
-    a: 0.3,
+    a: 0.2,
 };
 
 pub struct Player {
@@ -51,7 +51,7 @@ impl Player {
                 0.5,
             ),
             particle_controller_trails: ParticleController::new(
-                0.02,
+                0.01,
                 radius * 0.5,
                 radius * 0.2,
                 PLAYER_PARTICLE_COLOR,
@@ -60,19 +60,18 @@ impl Player {
         }
     }
 
-    pub fn update(
-        self: &mut Self,
-        planets: &Vec<Planet>,
-        danger_zone: &DangerZone,
-        delta_time: f32,
-    ) {
-        if self.check_danger_zone_collision(danger_zone) {
-            self.die();
+    pub fn update(self: &mut Self, planets: &Vec<Planet>, delta_time: f32) {
+        self.particle_controller.update(delta_time, self.position);
+        self.particle_controller
+            .shift_color(delta_time, 0f32, 0f32, delta_time);
+        self.particle_controller_trails
+        .update(delta_time, self.position);
+        self.particle_controller_trails
+            .shift_color(-delta_time, 0f32, 0f32, 0f32);
+
+        if self.is_dead {
             return;
         }
-        self.particle_controller.update(delta_time, self.position);
-        self.particle_controller_trails
-            .update(delta_time, self.position);
 
         let mut abs_velocity =
             f32::sqrt(self.velocity.y * self.velocity.y + self.velocity.x * self.velocity.x);
@@ -148,18 +147,6 @@ impl Player {
         let change = self.velocity * delta_time;
         self.position += change;
         self.particle_controller.inherit_movement(change);
-    }
-
-    fn die(self: &mut Self) {
-        self.is_dead = true;
-    }
-
-    fn check_danger_zone_collision(self: &Self, danger_zone: &DangerZone) -> bool {
-        if self.position.y + self.radius > danger_zone.position_y {
-            true
-        } else {
-            false
-        }
     }
 
     pub fn draw(self: &Self, planets: &Vec<Planet>, camera: &Camera2D) {

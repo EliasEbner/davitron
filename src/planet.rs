@@ -2,10 +2,10 @@ use crate::particle_controller::ParticleController;
 use macroquad::{camera::Camera2D, color::Color, math::Vec2};
 
 const PLANET_COLOR: Color = Color {
-    r: 0.0,
-    g: 0.0,
-    b: 1.0,
-    a: 0.3,
+    r: 0.2,
+    g: 0.4,
+    b: 0.2,
+    a: 0.2,
 };
 
 pub struct Planet {
@@ -22,7 +22,7 @@ impl Planet {
             position,
             velocity,
             particle_controller: ParticleController::new(
-                0.003,
+                0.01,
                 radius * 1.2,
                 radius * 0.4,
                 PLANET_COLOR,
@@ -33,6 +33,8 @@ impl Planet {
 
     pub fn update(self: &mut Self, delta_time: f32) {
         self.particle_controller.update(delta_time, self.position);
+        self.particle_controller
+            .shift_color(0.0, delta_time, 2.0 * delta_time, 0.0);
         let change = self.velocity * delta_time;
         self.position += change;
         self.particle_controller.inherit_movement(change);

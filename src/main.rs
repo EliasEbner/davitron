@@ -6,7 +6,7 @@ use macroquad::rand::RandGenerator;
 use macroquad::text::draw_text;
 use macroquad::time::get_frame_time;
 use macroquad::window::{
-    clear_background, next_frame, request_new_screen_size, screen_height, screen_width,
+    clear_background, next_frame, screen_height, screen_width, set_fullscreen,
 };
 
 use danger_zone::DangerZone;
@@ -23,13 +23,49 @@ mod random_generator;
 
 #[macroquad::main("MyGame")]
 async fn main() {
-    request_new_screen_size(1000f32, 800f32);
+    // request_new_screen_size(1000f32, 800f32);
+    set_fullscreen(true);
     let rand_num_generator: RandGenerator = get_rand_generator();
 
     let mut player: Player = Player::new(50f32);
     let mut camera: Camera2D = Camera2D::default();
     let mut planets: Vec<Planet> = Vec::new();
-    let mut danger_zone: DangerZone = DangerZone::new();
+    let mut bottom_danger_zone: DangerZone = DangerZone::new(
+        Vec2 {
+            x: 0f32,
+            y: 1000f32,
+        },
+        Vec2 {
+            x: 3000f32,
+            y: 1200f32,
+        },
+        Vec2 { x: 0f32, y: -20f32 },
+        0.003,
+    );
+    let mut left_danger_zone: DangerZone = DangerZone::new(
+        Vec2 {
+            x: -1600f32,
+            y: 0f32,
+        },
+        Vec2 {
+            x: 1200f32,
+            y: 2000f32,
+        },
+        Vec2 { x: 0f32, y: 0f32 },
+        0.01,
+    );
+    let mut right_danger_zone: DangerZone = DangerZone::new(
+        Vec2 {
+            x: 1600f32,
+            y: 0f32,
+        },
+        Vec2 {
+            x: 1200f32,
+            y: 2000f32,
+        },
+        Vec2 { x: 0f32, y: 0f32 },
+        0.01,
+    );
 
     for i in 0..10 {
         planets.push(Planet::new(
@@ -53,7 +89,7 @@ async fn main() {
     loop {
         let delta_time: f32 = get_frame_time();
 
-        if is_key_pressed(KeyCode::Space) {
+        if !player.is_dead && is_key_pressed(KeyCode::Space) {
             let mut nearest: (f32, Option<usize>) = (f32::INFINITY, None);
             for (index, planet) in planets.iter().enumerate() {
                 let dist = (planet.position.x - player.position.x)
@@ -72,14 +108,24 @@ async fn main() {
             }
         }
 
-        if is_key_released(KeyCode::Space) {
+        if player.is_dead || is_key_released(KeyCode::Space) {
             player.let_go_of_planet(&planets);
         }
 
         player.update_camera(&mut camera);
-        player.update(&planets, &danger_zone, delta_time);
+        player.update(&planets, delta_time);
 
-        danger_zone.update(delta_time, player.position.x);
+        bottom_danger_zone.update_as_bottom_zone(delta_time, player.position.x);
+        bottom_danger_zone.check_and_handle_player_collision(&mut player);
+        if !player.is_dead {
+            left_danger_zone.update_as_side_zone(delta_time, player.position.y);
+            right_danger_zone.update_as_side_zone(delta_time, player.position.y);
+            left_danger_zone.check_and_handle_player_collision(&mut player);
+            right_danger_zone.check_and_handle_player_collision(&mut player);
+            if player.is_dead {
+                bottom_danger_zone.position.y = player.position.y + 600f32;
+            }
+        }
 
         for planet in &mut planets {
             planet.update(delta_time);
@@ -103,8 +149,13 @@ async fn main() {
         }
 
         clear_background(BLACK);
+        
         player.draw(&planets, &camera);
-        danger_zone.draw(&camera);
+        bottom_danger_zone.draw(&camera);
+        if !player.is_dead {
+            left_danger_zone.draw(&camera);
+            right_danger_zone.draw(&camera);
+        }
         for planet in &planets {
             planet.draw(&camera);
         }
